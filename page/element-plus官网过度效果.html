@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        width: 100vw;
+        height: 100vh;
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        grid-template-rows: repeat(3, 1fr);
+        place-items: center;
+        gap: 20px;
+        padding: 20px;
+      }
+
+      html.dark body {
+        background-color: #121212;
+      }
+
+      ::view-transition-new(root),
+      ::view-transition-old(root) {
+        animation: none;
+      }
+
+      .theme-toggle {
+        width: 100px;
+        height: 50px;
+        border: 1px solid #000;
+        border-radius: 10px;
+        cursor: pointer;
+      }
+    </style>
+  </head>
+  <body>
+    <button class="theme-toggle">切换主题</button>
+    <button class="theme-toggle">切换主题</button>
+    <button class="theme-toggle">切换主题</button>
+    <button class="theme-toggle">切换主题</button>
+    <button class="theme-toggle">切换主题</button>
+    <button class="theme-toggle">切换主题</button>
+    <button class="theme-toggle">切换主题</button>
+    <button class="theme-toggle">切换主题</button>
+    <button class="theme-toggle">切换主题</button>
+
+    <script>
+      const themeToggle = document.getElementById("theme-toggle");
+
+      const clickHandle = function (e) {
+        const transition = document.startViewTransition((x) => {
+          document.documentElement.classList.toggle("dark");
+
+          console.log(x);
+        });
+
+        // 在 transition.ready 的 Promise 完成后，执行自定义动画
+        transition.ready.then(() => {
+          const { clientX, clientY } = e;
+          // 计算半径，以鼠标点击的位置为圆心，到四个角的距离中最大的那个作为半径
+          const radius = Math.hypot(Math.max(clientX, innerWidth - clientX), Math.max(clientY, innerHeight - clientY));
+          // 自定义动画
+          document.documentElement.animate(
+            {
+              clipPath: [`circle(0% at ${clientX}px ${clientY}px)`, `circle(${radius}px at ${clientX}px ${clientY}px)`],
+            },
+            {
+              duration: 500,
+              pseudoElement: "::view-transition-new(root)",
+            }
+          );
+        });
+      };
+
+      document.querySelectorAll(".theme-toggle").forEach((item) => {
+        item.addEventListener("click", clickHandle);
+      });
+
+      window.toggleTheme = clickHandle;
+
+      // 实现一个方法，每隔三秒随机触发一个按钮的点击事件
+      function randomClickThemeToggle() {
+        // 获取所有主题切换按钮
+        const themeButtons = document.querySelectorAll(".theme-toggle");
+
+        // 如果没有按钮，则直接返回
+        if (themeButtons.length === 0) return;
+
+        // 设置定时器，每隔3秒执行一次
+        setInterval(() => {
+          // 随机选择一个按钮
+          const randomIndex = Math.floor(Math.random() * themeButtons.length);
+          const randomButton = themeButtons[randomIndex];
+
+          // 模拟点击事件
+          const fakeEvent = {
+            clientX: randomButton.getBoundingClientRect().left + randomButton.offsetWidth / 2,
+            clientY: randomButton.getBoundingClientRect().top + randomButton.offsetHeight / 2,
+          };
+
+          // 调用点击处理函数
+          clickHandle(fakeEvent);
+        }, 1000);
+      }
+
+      // 如果需要启动随机点击功能，取消下面这行的注释
+      randomClickThemeToggle();
+    </script>
+  </body>
+</html>
